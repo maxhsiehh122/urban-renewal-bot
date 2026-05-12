@@ -9,3 +9,7 @@ services:
         sync: false
       - key: WEBHOOK_URL
         value: https://urban-renewal-bot.onrender.com
+      - key: LINE_CHANNEL_SECRET
+        sync: false
+      - key: LINE_CHANNEL_ACCESS_TOKEN
+        sync: false
