@@ -62,10 +62,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
         return
 
-    await update.message.reply_text("⏳ 查詢中，請稍候…")
+    from querier import _cache
+    import time
+    cached = address in _cache and (time.monotonic() - _cache[address][1]) < 3600
+
+    if not cached:
+        await update.message.reply_text("⏳ 查詢中，請稍候…")
 
     try:
-        cases = query_by_address(address)
+        cases = await query_by_address(address)
     except Exception as e:
         logger.error("Query failed for %s: %s", address, e)
         await update.message.reply_text(format_error())
