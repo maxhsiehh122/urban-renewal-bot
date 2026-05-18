@@ -69,15 +69,17 @@ async def line_webhook(request: Request):
     from linebot.v3.exceptions import InvalidSignatureError
     from linebot.v3.webhooks import MessageEvent, TextMessageContent
     from line_bot import handle_event
+    import asyncio
 
     try:
         events = line_parser.parse(body.decode(), signature)
     except InvalidSignatureError:
         raise HTTPException(status_code=400, detail="Invalid signature")
 
+    # 先回 200，背景處理查詢（LINE 要求 1 秒內回應）
     for event in events:
         if isinstance(event, MessageEvent) and isinstance(event.message, TextMessageContent):
-            await handle_event(event, line_config)
+            asyncio.create_task(handle_event(event, line_config))
 
     return {"ok": True}
 
