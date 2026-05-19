@@ -5,7 +5,7 @@ from linebot.v3.messaging import (
     AsyncApiClient,
     AsyncMessagingApi,
     Configuration,
-    ReplyMessageRequest,
+    PushMessageRequest,
     TextMessage,
 )
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
@@ -30,9 +30,11 @@ async def handle_event(event: MessageEvent, config: Configuration) -> None:
     async with AsyncApiClient(config) as client:
         api = AsyncMessagingApi(client)
 
+        user_id = event.source.user_id
+
         if not ADDRESS_PATTERN.search(address):
-            await api.reply_message(ReplyMessageRequest(
-                reply_token=event.reply_token,
+            await api.push_message(PushMessageRequest(
+                to=user_id,
                 messages=[TextMessage(text="⚠️ 請輸入完整地址（需含路名及號碼）\n範例：和平東路一段100號")]
             ))
             return
@@ -40,8 +42,8 @@ async def handle_event(event: MessageEvent, config: Configuration) -> None:
         try:
             cases = await query_by_address(address)
         except Exception:
-            await api.reply_message(ReplyMessageRequest(
-                reply_token=event.reply_token,
+            await api.push_message(PushMessageRequest(
+                to=user_id,
                 messages=[TextMessage(text=format_error())]
             ))
             return
@@ -52,7 +54,7 @@ async def handle_event(event: MessageEvent, config: Configuration) -> None:
             active, historical = split_cases(cases)
             text = _plain(format_results(address, active, historical))
 
-        await api.reply_message(ReplyMessageRequest(
-            reply_token=event.reply_token,
+        await api.push_message(PushMessageRequest(
+            to=user_id,
             messages=[TextMessage(text=text)]
         ))
